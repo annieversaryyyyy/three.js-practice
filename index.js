@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // сцена
 const scene = new THREE.Scene();
@@ -12,7 +13,7 @@ const camera = new THREE.PerspectiveCamera(
   100
 );
 camera.position.set(0, 5, 10);
-camera.rotation.x = 6
+camera.rotation.x = 6;
 
 //свет
 const ambientLight = new THREE.AmbientLight("white", 0.5); //цвет и интенсивность цвета
@@ -28,15 +29,19 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+const controls = new OrbitControls(camera, renderer.domElement); //контроль над камерой
+controls.enableDamping = true;
+controls.dampingFactor = 0.05; // значение для замедления
+controls.screenSpacePanning = false; //отключаем панорамирование
+controls.minDistance = 2;
+controls.maxDistance = 10;
+
 //создание плоскости
-const texture = new THREE.TextureLoader().load("/assets/road.jpg");
-const textureMaterial = new THREE.MeshBasicMaterial({ map: texture });
 const road = new THREE.Mesh(
-  new THREE.PlaneGeometry(30, 20),
+  new THREE.BoxGeometry(30, 0.5, 20), // ширина, толщина, глубина
   new THREE.MeshStandardMaterial({ color: "#333" })
-  // textureMaterial
 );
-road.rotation.x = -Math.PI / 2;
+road.position.y = -0.25; 
 scene.add(road);
 
 ///Загрузка модели
@@ -58,26 +63,32 @@ loader.load(
   }
 );
 
+//управление машинкой через клавиши
 let angle = 0;
+let isMoving = false;
+
+window.addEventListener("keydown", (event) => {
+  if (event.key === "ArrowUp") isMoving = true;
+});
+
+window.addEventListener("keyup", (event) => {
+  if (event.key === "ArrowUp") isMoving = false;
+});
+
 function moveCar() {
-  if (!car) return;
+  if (!car || !isMoving) return;
   angle += 0.01;
   car.position.x = 5 * Math.cos(angle);
   car.position.z = 5 * Math.sin(angle);
   car.rotation.y = -angle;
 }
 
-//Точки
-const infoPoints = [
-  { position: new THREE.Vector3(5, 0, 0), message: "ololo" },
-  { position: new THREE.Vector3(-5, 0, 0), message: "ololo" },
-  { position: new THREE.Vector3(0, 0, 5), message: "ololo" },
-];
-
 //функция для постоянного рендера и анимации
 function animate() {
   requestAnimationFrame(animate);
   moveCar();
+
+  controls.update();
 
   renderer.setClearColor("#9eafbe");
   renderer.render(scene, camera);
