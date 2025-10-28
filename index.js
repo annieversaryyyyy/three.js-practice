@@ -48,7 +48,7 @@ scene.add(road);
 const loader = new GLTFLoader();
 let car;
 loader.load(
-  "/models/toy_car/scene.gltf",
+  "models/toy_car/scene.gltf",
   (gltf) => {
     car = gltf.scene;
     car.position.set(0, 0, 0);
